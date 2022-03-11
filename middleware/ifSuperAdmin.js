@@ -30,10 +30,8 @@ export const superAdmin=(req,res,next)=>{
     })
 
     DBConnection.query(`
-    SELECT r.id
-    FROM users
-    LEFT JOIN roles AS r
-    ON r.id  = users.role  
+    SELECT roles
+    FROM users 
     WHERE users.id = ?`, [[res_locals_user.id]],(err, results) => {
         if(results[0].roles_id != 1){
             res.status(401).send({

@@ -7,7 +7,7 @@ export const getBookingRoom = (req,res)=>{
     `
     DBConnection.query(query,  (err, result)=>{
         if (err) throw err
-        res.status(201).send({
+        res.status(200).send({
             "status" : 1,
             "result": result
         })

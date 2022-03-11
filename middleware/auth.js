@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 export const authenticationCheck=(req,res,next)=>{
+    var res_locals_user 
     const auth=req.headers.authorization;
     if(auth === undefined){
         res.status(401).send({
@@ -16,7 +17,7 @@ export const authenticationCheck=(req,res,next)=>{
         return
     }
     const token=authSplit[1]
-    jwt.verify(token,process.env.TOKEN_KEY,(err,decoded)=>{
+    jwt.verify(token,process.env.TOKEN_SECRET,(err,decoded)=>{
         if(err){
             res.status(401).send({
                 "status":0,

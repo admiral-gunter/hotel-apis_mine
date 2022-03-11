@@ -6,6 +6,7 @@ import DBConnection from './db/connection.js';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import roomRouter from './modules/room/routes.js';
+import bookingRouter from './modules/booking/routes.js';
 
 const __dirname = path.resolve();
 DBConnection.connect();
@@ -32,5 +33,6 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(__dirname + "/resources"));
 app.use(authRouter);
 app.use(roomRouter)
+app.use(bookingRouter)
 
 app.listen(process.env.PORT,"0.0.0.0",()=>console.log("Listening on PORT "+process.env.PORT))
