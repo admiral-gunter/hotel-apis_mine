@@ -18,15 +18,15 @@ export const createBookingRoom = (req,res) => {
     const data = req.body
     let query = 
     `
-    INSERT INTO pemesanan_kamar (kamar_id, created_at, created_by) VALUES ?
+    INSERT INTO pemesanan_kamar (kamar_id, created_at, created_by, nama_user, no_telp, email, pricing ) VALUES ?
     `
     let dataQuery = [
         data.name,
         data.created_at,
         null,
         data.nama_user,
-        data.no_telp,
-        data.email
+        data.email,
+        data.no_telp
     ]
 
     DBConnection.query(query, [dataQuery], (err, result)=>{
