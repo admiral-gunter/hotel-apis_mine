@@ -6,9 +6,11 @@ const bookingRouter=express.Router();
 
 const modulePath="/hotel"
 
-bookingRouter.get(modulePath+"/kamar", authenticationCheck,getBookingRoom)
-bookingRouter.post(modulePath+"/kamar", authenticationCheck,createBookingRoom)
-bookingRouter.put(modulePath+"/kamar/:id", authenticationCheck,updateBookingRoom)
-bookingRouter.delete(modulePath+"/kamar/:id", authenticationCheck,deleteBookingRoom)
+bookingRouter.use(authenticationCheck)
+
+bookingRouter.get(modulePath+"/kamar",getBookingRoom)
+bookingRouter.post(modulePath+"/kamar",createBookingRoom)
+bookingRouter.put(modulePath+"/kamar/:id",updateBookingRoom)
+bookingRouter.delete(modulePath+"/kamar/:id",deleteBookingRoom)
 
 export default bookingRouter

@@ -25,7 +25,8 @@ export const authenticationCheck=(req,res,next)=>{
             })
             return
         }
-        res_locals_user=decoded
+
+        req.user=decoded
         next()
     });
 }
