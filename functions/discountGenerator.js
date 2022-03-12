@@ -3,15 +3,17 @@ import util from 'util'
 
 export const discountSpecial = async (jenis_kamar_id)=>{
     const query=util.promisify(DBConnection.query).bind(DBConnection)
+    var pricing
     let queryRes  = await query( 
     `
     SELECT harga_kamar FROM jenis_kamar
     WHERE id = ?
     `, [jenis_kamar_id])
-    console.log(queryRes[0].harga_kamar - queryRes[0].harga_kamar * 20/100);
+    pricing = queryRes[0].harga_kamar - queryRes[0].harga_kamar * 20/100
+    return pricing
 }
-
-discountSpecial(1)
+const diskon = await discountSpecial(1)
+console.log(diskon)
 
 export const normalPrice = async (jenis_kamar_id)=>{
     const query=util.promisify(DBConnection.query).bind(DBConnection)
@@ -20,7 +22,9 @@ export const normalPrice = async (jenis_kamar_id)=>{
     SELECT harga_kamar FROM jenis_kamar
     WHERE id = ?
     `, [jenis_kamar_id])
-    console.log(queryRes[0].harga_kamar);
+    return queryRes[0].harga_kamar
 }
 
-normalPrice(1)
+const normal = await normalPrice(1)
+
+console.log(normal);
