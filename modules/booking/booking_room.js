@@ -1,4 +1,6 @@
 import DBConnection from "../../db/connection.js"
+import util from 'util'
+import { discountSpecial, normalPrice } from "../../functions/discountGenerator.js"
 
 export const getBookingRoom = (req,res)=>{
     let query = 
@@ -14,51 +16,63 @@ export const getBookingRoom = (req,res)=>{
     })
 }
 
-export const createBookingRoom = (req,res) => {
+export const createBookingRoom = async (req,res) => {
     const data = req.body
-    let query = 
-    `
-    INSERT INTO pemesanan_kamar (kamar_id, created_at, created_by, nama_user, no_telp, email, pricing ) VALUES ?
-    `
-    let dataQuery = [
-        data.kamar_id,
-        data.created_at,
-        req.user.id,
-        data.nama_user,
-        data.no_telp,
-        data.email,
-        null
-    ]
     DBConnection.beginTransaction()
-    DBConnection.query(`SELECT * FROM kamar WHERE id = ?`, dataQuery[0],(err, result)=>{
-        if (err) throw err
-        if (result[0].status == 1){
+    let query=util.promisify(DBConnection.query).bind(DBConnection)
+    let queryRes
+    let queryApr 
+    let id
+    let pricing
+    try {
+        let dataQuery = [
+            data.kamar_id,
+            req.user.id,
+            data.nama_user,
+            data.no_telp,
+            data.email
+        ]
+       
+        queryApr = await query(`SELECT * FROM kamar WHERE id = ?`, dataQuery[0])
+        if(queryApr[0].status == 1){
             res.status(400).send({
                 "status" : 0,
                 "message": "kamar sudah terbook"
             })
             return
         }
-        DBConnection.query(query, [[dataQuery]], (err, result)=>{
-            if (err) throw err
-            let query =
-            `
-            SELECT * FROM pemesanan_kamar WHERE id = ${result.insertId}
-            `
-            DBConnection.query(query, (err, result)=>{
-                if (err) throw err
-                let id = result[0].kamar_id
-                let query = `UPDATE kamar SET status = 1 WHERE id = ${id}`
-                DBConnection.query(query, (err, result)=>{
-                    DBConnection.commit()
-                    res.status(201).send({
-                        "status" : 1,
-                        "result": result
-                    })
-                })
-            })
+        pricing = await normalPrice(queryApr[0].jenis_kamar)
+        var today = new Date();
+        if(today.getDay() == 6 || today.getDay() == 0)
+        {
+            pricing = await discountSpecial(queryApr[0].jenis_kamar)
+        }
+        // if(user || weekend lesgo diskon){
+        //     pricing = await discountSpecial(queryApr[0].jenis_kamar)
+        // }
+        dataQuery.push(pricing)
+        queryRes = await query(`INSERT INTO pemesanan_kamar (kamar_id, created_at, created_by, nama_user, no_telp, email, pricing ) 
+                                VALUES ?`, [[dataQuery]])
+        queryApr = await query(`SELECT * FROM pemesanan_kamar WHERE id = ${queryRes.insertId}`)
+        id = queryApr[0].kamar_id
+
+        queryRes = await query(`UPDATE kamar SET status = 1 WHERE id = ${id}`)
+
+        queryRes = await query(`INSERT INTO log_pemesanan_kamar (kamar_id, created_at, created_by, nama_user, no_telp, email, pricing ) VALUES ?`, [[dataQuery]]) 
+       
+        DBConnection.commit()
+        res.status(201).send({
+            "status" : 1,
+            "result": queryRes
         })
-    })
+    } catch (err) {
+        console.log(err);
+        DBConnection.rollback()
+        return res.status(500).send({
+            status:0,
+            message:err
+        })
+    }
 }
 
 export const updateBookingRoom = (req,res)=>{
@@ -71,13 +85,13 @@ export const updateBookingRoom = (req,res)=>{
     let dataQuery = [
         data.kamar_id,
         data.created_at,
-        null,
+        req.user.id,
         data.nama_user,
         data.no_telp,
         data.email
     ]
 
-    DBConnection.query(query, [dataQuery], (err, result)=>{
+    DBConnection.query(query, [[dataQuery]], (err, result)=>{
         if (err) throw err
         res.status(201).send({
             "status" : 1,
