@@ -5,7 +5,13 @@ import { discountSpecial, normalPrice } from "../../functions/discountGenerator.
 export const getBookingRoom = (req,res)=>{
     let query = 
     `
-    SELECT * FROM pemesanan_kamar
+    SELECT pk.*,k.name AS kamar,jk.name AS jenis_kamar , jk.harga_kamar AS room_pricing, u.full_name AS created_who FROM pemesanan_kamar AS pk
+    LEFT JOIN kamar AS k 
+    ON pk.kamar_id  = k.id
+    LEFT JOIN jenis_kamar AS jk
+    ON k.jenis_kamar  = jk.id 
+    LEFT JOIN users AS u
+    ON pk.created_by  = u.id 
     `
     DBConnection.query(query,  (err, result)=>{
         if (err) throw err
@@ -13,6 +19,33 @@ export const getBookingRoom = (req,res)=>{
             "status" : 1,
             "result": result
         })
+    })
+}
+
+export const getBookingRoomById = (req,res)=>{
+    const id = req.params.id
+    let diskon
+    let query = 
+    `
+    SELECT pk.*, k.jenis_kamar AS jenis_kamar , k.name AS nama_kamar, k.max_kapasitas AS capacity, k.status  AS status_kamar FROM pemesanan_kamar pk
+    LEFT JOIN kamar AS k 
+    ON pk.kamar_id  = k.id
+    WHERE pk.id = ?
+    `
+    DBConnection.query(query,  id,(err, resultan)=>{
+        if (err) throw err
+        DBConnection.query(`SELECT * FROM jenis_kamar WHERE id = ?`, resultan[0].jenis_kamar,(err, result)=>{
+            console.log(resultan);
+            console.log(result);
+            diskon = resultan[0].pricing/result[0].harga_kamar * 100
+            if (err) throw err
+            res.status(200).send({
+                "status" : 1,
+                "data": resultan,
+                "result": result,
+                "diskon": diskon
+            })
+        })  
     })
 }
 
@@ -27,6 +60,7 @@ export const createBookingRoom = async (req,res) => {
     try {
         let dataQuery = [
             data.kamar_id,
+            data.created_at,
             req.user.id,
             data.nama_user,
             data.no_telp,

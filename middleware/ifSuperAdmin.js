@@ -20,19 +20,19 @@ export const superAdmin=(req,res,next)=>{
     const token=authSplit[1]
     jwt.verify(token,process.env.TOKEN_SECRET,(err,decoded)=>{
         if(err){
-            res.status(401).send({
+            res.status(500).send({
                 "status":0,
                 "message":err
             })
             return
         }
-        res_locals_user=decoded
+        req.user=decoded
     })
 
     DBConnection.query(`
     SELECT roles
     FROM users 
-    WHERE users.id = ?`, [[res_locals_user.id]],(err, results) => {
+    WHERE users.id = ?`, [[req.user.id]],(err, results) => {
         if(results[0].roles_id != 1){
             res.status(401).send({
                 "status":0,

@@ -16,8 +16,3 @@ authRouter.post(modulePath+"/login",LoginController);
 
 
 export default authRouter;
-
-
-/**
- * been a long time since we met kinda wondering if we can meet idk ngapain tho i'm clueless as ever 
- */

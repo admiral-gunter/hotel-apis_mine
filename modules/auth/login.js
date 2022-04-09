@@ -7,7 +7,7 @@ export const LoginController=(req,response)=>{
         if(results.length == 0){
             response.status(400).send({
                 "status":0,
-                "reason": "password or email do not mach our record"
+                "data": "password or email do not mach our record"
             })
             return
         }
@@ -23,7 +23,8 @@ export const LoginController=(req,response)=>{
                 }
                 if(res){
                     console.log(user.id);
-                    const token = jwt.sign({id: user.id}, process.env.TOKEN_SECRET, { expiresIn: '2h' })
+                    const token = jwt.sign({id: user.id, username: user.full_name, email: user.email, role: user.role}, process.env.TOKEN_SECRET, { expiresIn: '2h' })
+                    response.cookie("jwt",token,{maxAge: 7200000})
                     response.status(200).send({
                         "status":1,
                         "data":{
@@ -33,7 +34,7 @@ export const LoginController=(req,response)=>{
                 }else{
                     response.status(400).send({
                         "status":0,
-                        "reason": "password or email do not mach our record"
+                        "data": "password or email do not mach our record"
                     })
                 }
             })

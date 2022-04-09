@@ -15,15 +15,31 @@ const cryptPassword = function(password, callback) {
 export const RegisterController=(req,res)=>{
   cryptPassword(req.body.password,(err,hash)=>{
       if (err) { throw err; }
-      DBConnection.query('INSERT INTO users (email,password,role) VALUES (?)', [[req.body.email, hash,req.body.role]], function (error, results, fields) {
-        if (error) throw error
-      res.status(200).send({
+      DBConnection.beginTransaction()
+      DBConnection.query('SELECT * FROM users WHERE email IN (?)',[req.body.email], function (error, results, fields) {
+        if(err) throw err;
+
+        if(results.length > 0){
+          DBConnection.rollback()
+          return res.status(400).send({
+            status:0,
+            message:"Email tersebut sudah terdaftar",
+            data:[]
+          })
+        }
+     
+      DBConnection.query('INSERT INTO users (full_name,email,password,role) VALUES (?)', [[req.body.name,req.body.email, hash,req.body.role]], function (error, results, fields) {
+      if (error) throw error
+      DBConnection.commit()
+      res.status(201).send({
         "status":1,
         "data":{
             "message":results
         }
-        })
-        });
+      })
     });
+  });
+
+  });
 
 }
